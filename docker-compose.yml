@@ -1,22 +1,10 @@
 version: "3.8"
 services:
-<<<<<<< HEAD
-=======
-  backend:
-    container_name: backend
-    build: ./backend
-    env_file: ./backend/.env.sample
-    ports: 
-      - "5000:5000"
-    depends_on:
-      - mongodb
->>>>>>> main
   mongodb:
     container_name: mongo
     image: mongo:latest
     volumes:
       - ./backend/data:/data
-<<<<<<< HEAD
     ports:
       - "27017:27017"
 
@@ -47,16 +35,5 @@ services:
     depends_on:
       - mongodb
 
-=======
-    ports: 
-      - "27017:27017"
-  frontend:
-    container_name: frontend
-    build: ./frontend
-    env_file: ./frontend/.env.sample
-    ports: 
-      - "5173:5173"
-
->>>>>>> main
 volumes:
   data:
