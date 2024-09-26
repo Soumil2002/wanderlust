@@ -1,17 +1,17 @@
 pipeline{
     agent any
     environment{
-        SONAR_HOME= tool "Sonar"
+        SONAR_HOME= tool "sonar"
     }
     stages{
         stage("Clone Code from GitHub"){
             steps{
-                git url: "https://github.com/krishnaacharyaa/wanderlust.git", branch: "devops"
+                git url: "https://github.com/Soumil2002/wanderlust.git", branch: "main"
             }
         }
         stage("SonarQube Quality Analysis"){
             steps{
-                withSonarQubeEnv("Sonar"){
+                withSonarQubeEnv("sonar"){
                     sh "$SONAR_HOME/bin/sonar-scanner -Dsonar.projectName=wanderlust -Dsonar.projectKey=wanderlust"
                 }
             }

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Stage 1
 FROM node:21 AS backend-builder
 
@@ -29,3 +30,18 @@ EXPOSE 5000
 
 # App
 CMD ["npm", "start"]
+=======
+FROM node:21
+
+WORKDIR /app
+
+COPY . .
+
+RUN npm i
+
+COPY .env.sample .env
+
+EXPOSE 5000
+
+CMD ["npm","start"]
+>>>>>>> main
