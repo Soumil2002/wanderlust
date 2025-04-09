@@ -1,43 +1,119 @@
-pipeline{
+@Library('Shared') _
+pipeline {
     agent any
+    
     environment{
-        SONAR_HOME= tool "sonar"
+        SONAR_HOME = tool "Sonar"
     }
-    stages{
-        stage("Clone Code from GitHub"){
+    stages {
+        
+        stage("Workspace cleanup"){
             steps{
-                git url: "https://github.com/Soumil2002/wanderlust.git", branch: "main"
-            }
-        }
-        stage("SonarQube Quality Analysis"){
-            steps{
-                withSonarQubeEnv("sonar"){
-                    sh "$SONAR_HOME/bin/sonar-scanner -Dsonar.projectName=wanderlust -Dsonar.projectKey=wanderlust"
+                script{
+                    cleanWs()
                 }
             }
         }
-        stage("OWASP Dependency Check"){
-            steps{
-                dependencyCheck additionalArguments: '--scan ./', odcInstallation: 'dc'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-            }
-        }
-        stage("Sonar Quality Gate Scan"){
-            steps{
-                timeout(time: 2, unit: "MINUTES"){
-                    waitForQualityGate abortPipeline: false
+        
+        stage('Git: Code Checkout') {
+            steps {
+                script{
+                    code_checkout("https://github.com/DevMadhup/wanderlust.git","devops")
                 }
             }
         }
-        stage("Trivy File System Scan"){
+        
+        stage("OWASP: Dependency check"){
             steps{
-                sh "trivy fs --format  table -o trivy-fs-report.html ."
+                script{
+                    owasp_dependency()
+                }
+            }
+            post{
+                success{
+                    archiveArtifacts artifacts: '**/dependency-check-report.xml', followSymlinks: false, onlyIfSuccessful: true
+                }
             }
         }
-        stage("Deploy using Docker compose"){
+        
+        stage("Trivy: Filesystem scan"){
             steps{
-                sh "docker-compose up -d"
+                script{
+                    trivy_scan()
+                }
             }
+        }
+        
+        stage("SonarQube: Code Analysis"){
+            steps{
+                script{
+                    sonarqube_analysis("Sonar","wanderlust","wanderlust")
+                }
+            }
+        }
+        
+        stage("SonarQube: Code Quality Gates"){
+            steps{
+                script{
+                    sonarqube_code_quality()
+                }
+            }
+        }
+        
+        stage('Exporting environment variables') {
+            parallel{
+                stage("Backend env setup"){
+                    steps {
+                        script{
+                            dir("Automations"){
+                                sh "bash updateBackend.sh"
+                            }
+                        }
+                    }
+                }
+                
+                stage("Frontend env setup"){
+                    steps {
+                        script{
+                            dir("Automations"){
+                                sh "bash updateFrontend.sh"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage("Docker: Build Images"){
+            steps{
+                script{
+                    dir('backend'){
+                        docker_build("backend-wanderlust","test-image-donot-use","madhupdevops")
+                    }
+                    
+                    dir('frontend'){
+                        docker_build("frontend-wanderlust","test-image-donot-use","madhupdevops")
+                    }
+                }
+            }
+        }
+        
+        stage("Docker: Push to DockerHub"){
+            steps{
+                script{
+                    docker_push("backend-wanderlust","test-image-donot-use","madhupdevops") 
+                    docker_push("frontend-wanderlust","test-image-donot-use","madhupdevops")
+                }
+            }
+        }
+    }
+    
+    post{
+        success{
+            build job: "Wanderlust-CD", parameters: [
+                string(name: 'FRONTEND_DOCKER_TAG', value: "test-image-donot-use"),
+                string(name: 'BACKEND_DOCKER_TAG', value: "test-image-donot-use")
+            ]
         }
     }
 }

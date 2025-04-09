@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Stage 1
 FROM node:21 AS backend-builder
 
@@ -26,22 +25,7 @@ COPY --from=backend-builder /app .
 COPY .env.docker .env
 
 # Port
-EXPOSE 5000
+EXPOSE 8080
 
 # App
 CMD ["npm", "start"]
-=======
-FROM node:21
-
-WORKDIR /app
-
-COPY . .
-
-RUN npm i
-
-COPY .env.sample .env
-
-EXPOSE 5000
-
-CMD ["npm","start"]
->>>>>>> main

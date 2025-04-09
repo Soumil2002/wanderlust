@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # ------------------- Stage 1: Build Stage ------------------------------
 FROM node:21 AS frontend-builder
 
@@ -31,18 +30,4 @@ EXPOSE 5173
 
 # Define the default command to run the application in development mode
 CMD ["npm", "run", "dev", "--", "--host"]
-=======
-FROM node:21
-WORKDIR /app
-
-COPY . .
-
-RUN npm i
-
-COPY .env.sample .env.local
-
-EXPOSE 5173
-
-CMD ["npm","run","dev","--","--host"]
->>>>>>> main
 
